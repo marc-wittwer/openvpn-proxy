@@ -1,0 +1,30 @@
+services:
+  openvpn-client:
+    build: 
+      context: build
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - 3128:3128
+    privileged: true
+    environment:
+      - CONFIG_FILE=nl-free-116.protonvpn.net.tcp.ovpn
+      - ALLOWED_SUBNETS=0.0.0.0/0
+      - KILL_SWITCH=off
+      - AUTH_SECRET=protonvpn_userpass
+    volumes:
+      - ./config:/config:ro
+    secrets:
+      - protonvpn_userpass
+  
+  proxy: 
+    image: ubuntu/squid
+    network_mode: service:openvpn-client
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf:ro
+
+secrets:
+  protonvpn_userpass:
+    file: ./config/credentials.txt
